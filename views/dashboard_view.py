@@ -8,5 +8,8 @@ class DashboardView(ft.View):
         self.appbar = ft.AppBar(
             bgcolor=ft.colors.TRANSPARENT,
         )
-
+        self.bottom_appbar = ft.BottomAppBar(
+            shape=ft.NotchShape.CIRCULAR,
+            height=100,
+        )
         self.controls = []
