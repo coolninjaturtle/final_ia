@@ -103,5 +103,14 @@ class SignupView(ft.View):
         self.controls = [self.signup_content]
 
     def __signup(self, e):
-        self.supabase.sign_up(self.email_bar.value, self.password_bar.value)
-        self.page.go("/dashboard")
+        self.controls[0].disabled = True
+        self.update()
+        signup_response = self.supabase.sign_up(self.email_bar.value, self.password_bar.value)
+        if signup_response == "success":
+            self.page.go(f"/dashboard/{self.supabase.current_user.id}")
+        else:
+            self.page.snack_bar = ft.SnackBar(ft.Text(signup_response), bgcolor=ft.colors.RED)
+            self.page.snack_bar.open = True
+            self.page.update()
+            self.controls[0].disabled = False
+            self.update()

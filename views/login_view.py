@@ -1,14 +1,36 @@
 import flet as ft
 
+import supabase_wrapper
+
 
 class LoginView(ft.View):
-    def __init__(self, page: ft.Page):
+    def __init__(self, page: ft.Page, supabase: supabase_wrapper.SupaBaseWrapper):
         super().__init__(route="/login")
         self.appbar = ft.AppBar(
             bgcolor=ft.colors.TRANSPARENT,
         )
         self.page = page
         self.padding = ft.padding.only(bottom=40, left=20, right=20, top=10)
+        self.supabase = supabase
+
+        self.email_bar = ft.TextField(
+            height=50,
+            label="Email",
+            label_style=ft.TextStyle(color="#50C878"),
+            autofocus=True,
+            hint_text="Enter Your Email",
+            border_color="#50C878",
+        )
+
+        self.password_bar = ft.TextField(
+            height=50,
+            label="Password",
+            label_style=ft.TextStyle(color="#50C878"),
+            password=True,
+            hint_text="Enter Your Password",
+            can_reveal_password=True,
+            border_color="#50C878",
+        )
 
         self.login_content = ft.Column(
             expand=True,
@@ -22,23 +44,8 @@ class LoginView(ft.View):
                     weight=ft.FontWeight.BOLD,
                 ),
                 ft.Divider(color=ft.colors.TRANSPARENT, height=10),
-                ft.TextField(
-                    height=50,
-                    label="Email",
-                    label_style=ft.TextStyle(color="#50C878"),
-                    autofocus=True,
-                    hint_text="Enter Your Email",
-                    border_color="#50C878",
-                ),
-                ft.TextField(
-                    height=50,
-                    label="Password",
-                    label_style=ft.TextStyle(color="#50C878"),
-                    password=True,
-                    hint_text="Enter Your Password",
-                    can_reveal_password=True,
-                    border_color="#50C878",
-                ),
+                self.email_bar,
+                self.password_bar,
                 ft.Row(
                     controls=[
                         ft.ElevatedButton(
@@ -83,4 +90,14 @@ class LoginView(ft.View):
         self.controls = [self.login_content]
 
     def __login(self, e):
-        self.page.go("/dashboard")
+        self.controls[0].disabled = True
+        self.update()
+        login_message = self.supabase.sign_in(self.email_bar.value, self.password_bar.value)
+        if login_message == "success":
+            self.page.go(f"/dashboard/{self.supabase.current_user.id}")
+        else:
+            self.page.snack_bar = ft.SnackBar(ft.Text(login_message), bgcolor=ft.colors.RED)
+            self.page.snack_bar.open = True
+            self.page.update()
+            self.controls[0].disabled = False
+            self.update()
