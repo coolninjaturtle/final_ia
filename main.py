@@ -3,7 +3,8 @@ from views.opening_view import OpeningView
 from views.login_view import LoginView
 from views.signup_view import SignupView
 from views.dashboard_view import DashboardView
-from views.recipe_view import NewRecipeView
+from views.new_recipe_view import NewRecipeView
+from views.recipe_view import RecipeView
 from supabase_wrapper import SupaBaseWrapper
 
 
@@ -33,13 +34,17 @@ def main(page: ft.Page):
                 page.views.pop()
             page.views.append(SignupView(page=page, supabase=supabase))
         elif troute.match("/dashboard/:user_id"):
-            if ft.TemplateRoute(page.views[-1].route).match("/dashboard/:user_id"):
+            if page.views[-1].route == f"/dashboard/{troute.user_id}":
                 page.views.pop()
-            page.views.append(DashboardView(page=page, user_id=troute.user_id, supabase=supabase))
+            page.views.append(dash_view := DashboardView(page=page, user_id=troute.user_id, supabase=supabase))
         elif troute.match("/new_recipe"):
             if page.views[-1].route == "/new_recipe":
                 page.views.pop()
             page.views.append(NewRecipeView(page=page, supabase=supabase))
+        elif troute.match("/recipe/:recipe_id"):
+            if page.views[-1].route == f"/recipe/{troute.recipe_id}":
+                page.views.pop()
+            page.views.append(RecipeView(page=page, supabase=supabase, recipe_id=troute.recipe_id))
         page.update()
 
     def view_pop(e):

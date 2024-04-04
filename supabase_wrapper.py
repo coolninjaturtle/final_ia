@@ -1,5 +1,6 @@
 import supabase
 from typing import Optional
+import os
 
 
 class SupaBaseWrapper:
@@ -9,7 +10,6 @@ class SupaBaseWrapper:
 
         self.client = supabase.create_client(self.__url, self.__api_key)
         self.auth = self.client.auth
-        self.current_user = None
 
     def sign_up(self, email, password):
         try:
@@ -37,9 +37,21 @@ class SupaBaseWrapper:
 
         return query.data
 
+    def get_favorite_recipes(self, user_id):
+        query = (
+            self.client.table("user_recipes")
+            .select("recipes(*)")
+            .filter("user_id", "eq", user_id)
+            .filter("favorited", "eq", "TRUE")
+            .execute()
+        )
+
+        return query.data
+
     def insert_new_recipe(
-        self, title, ingredients, process, user_id, time, photo: Optional[str] = None
+        self, title, ingredients, process, time, photo: Optional[str] = None,
     ):
+        photo = self.upload_photo(photo)
         recipe = (
             self.client.table("recipes")
             .insert(
@@ -48,18 +60,18 @@ class SupaBaseWrapper:
                     "recipe_ingredients": ingredients,
                     "recipe_process": process,
                     "recipe_time": time,
-                    "creator": user_id,
-                    "recipe_picture": photo,
+                    "creator": self.current_user.id,
+                    "recipe_picture": f"https://gueqnqhycdfkrghaygdk.supabase.co/storage/v1/object/public/recipe_photos/{photo}",
                 }
             )
             .execute()
         )
         self.client.table("user_recipes").insert(
-            {"user_id": user_id, "recipe_id": recipe.data[0]["recipe_id"]}
+            {"user_id": self.current_user.id, "recipe_id": recipe.data[0]["recipe_id"]}
         ).execute()
 
     def set_favorite(self, recipe_id, user_id, value):
-        self.client.table("user_recipes").update({"favorite": value}).filter(
+        self.client.table("user_recipes").update({"favorited": value}).filter(
             "recipe_id", "eq", recipe_id
         ).filter("user_id", "eq", user_id).execute()
 
@@ -71,4 +83,21 @@ class SupaBaseWrapper:
             .filter("user_id", "eq", user_id)
             .execute()
         )
-        return query[0]["favorite"]
+        return query.data[0]["favorited"]
+
+    def upload_photo(self, file):
+        with open(file, "rb") as file:
+            self.client.storage.from_("recipe_photos").upload(file=file, path=os.path.basename(file.name))
+        return os.path.basename(file.name)
+
+    def get_recipe_by_id(self, recipe_id):
+        query = (
+            self.client.table("recipes")
+            .select("*")
+            .filter("recipe_id", "eq", recipe_id)
+            .execute()
+        )
+        return query.data
+
+    def set_relationship(self, recipe_id, user_id):
+        self.client.table("user_recipes").insert({"user_id": user_id, "recipe_id": recipe_id}).execute()

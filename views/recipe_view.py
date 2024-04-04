@@ -1,87 +1,25 @@
 import flet as ft
 
 
-class NewRecipeView(ft.View):
-    def __init__(self, supabase, page):
+class RecipeView(ft.View):
+    def __init__(self, supabase, page, recipe_id):
         super().__init__()
         self.padding = 0
 
         self.page = page
         self.supabase = supabase
+        self.recipe_id = recipe_id
 
-        self.title_bar = ft.TextField(
-            text_align=ft.TextAlign.CENTER,
-            border_color=ft.colors.TRANSPARENT,
-            hint_text="Title Here",
-        )
+        self.scroll = ft.ScrollMode.AUTO
+
+        recipe_details = self.supabase.get_recipe_by_id(recipe_id=recipe_id)[0]
+        self.title = recipe_details["recipe_name"]
+        self.ingredients = recipe_details["recipe_ingredients"]
+        self.time = recipe_details["recipe_time"]
+        self.process = recipe_details["recipe_process"]
+        self.image_url = recipe_details["recipe_picture"]
+
         self.appbar = ft.AppBar(
-            title=self.title_bar,
-            center_title=True,
-            automatically_imply_leading=False,
-        )
-        self.bottom_appbar = ft.BottomAppBar(
-            content=ft.Row(
-                alignment=ft.MainAxisAlignment.CENTER,
-                controls=[
-                    ft.TextButton("Confirm", on_click=self.confirm),
-                    ft.VerticalDivider(thickness=2),
-                    ft.TextButton("Cancel", on_click=self.cancel),
-                ],
-            )
+            title=ft.Text(f"{self.title}", font_family="Polly-Bold", size=20, weight=ft.FontWeight.BOLD),
         )
 
-        self.ingredients_tab = ft.Tab(
-            text="Ingredients",
-            content=ft.Column(
-                alignment=ft.MainAxisAlignment.START,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                controls=[
-                    ft.Row(
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        controls=[
-                            ft.TextField(
-                                border_color=ft.colors.TRANSPARENT,
-                                hint_text="Ingredient Name"
-                            ),
-                            ft.TextField(
-                                border_color=ft.colors.TRANSPARENT,
-                                hint_text="Quantity",
-                            ),
-                            ft.TextField(
-                                border_color=ft.colors.TRANSPARENT,
-                                hint_text="Unit",
-                            )
-                        ]
-                    ),
-                    ft.IconButton(
-                        icon=ft.icons.ADD,
-                        icon_color=ft.colors.WHITE,
-                        on_click=self.add_ingredient
-                    )
-                ]
-            ),
-        )
-
-        tabs = ft.Tabs(
-            tab_alignment=ft.TabAlignment.CENTER,
-            selected_index=0,
-            tabs=[
-                self.ingredients_tab,
-                ft.Tab(
-                    text="Instructions",
-                ),
-            ],
-        )
-
-        self.controls = [tabs]
-
-    def confirm(self, e):
-        self.page.views.pop()
-        self.page.go(self.page.views[-1].route)
-
-    def cancel(self, e):
-        self.page.views.pop()
-        self.page.go(self.page.views[-1].route)
-
-    def add_ingredient(self, e):
-        pass

@@ -63,7 +63,7 @@ class RecipeCard(ft.UserControl):
                     alignment=ft.MainAxisAlignment.END,
                     controls=[self.text_content],
                 ),
-                    on_click=lambda e: print("balls"),
+                    on_click=lambda e: self.page.go(f"/recipe/{self.data}"),
                 ),
             ),
         )
