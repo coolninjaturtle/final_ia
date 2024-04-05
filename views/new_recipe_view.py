@@ -30,6 +30,7 @@ class NewRecipeView(ft.View):
             title=self.title_bar,
             center_title=True,
             automatically_imply_leading=False,
+            toolbar_height=60,
         )
         self.bottom_appbar = ft.BottomAppBar(
             elevation=10,
@@ -149,7 +150,7 @@ class NewRecipeView(ft.View):
                 self.page.update()
                 act_process()
             else:
-                time_dialog.content.error_text = "Pstop being a bbitch"
+                time_dialog.content.error_text = "Please Enter Amount of Time"
                 self.page.update()
 
         def act_process():
@@ -167,7 +168,6 @@ class NewRecipeView(ft.View):
                     time=time_dialog.content.value,
                     photo=self.photo_tab.content.controls[0].image_src
                 )
-                print(f"/dashboard/{self.supabase.current_user.id}")
                 self.page.views.pop()
                 self.page.go(self.page.views[-1].route)
             except Exception as e:
@@ -176,7 +176,7 @@ class NewRecipeView(ft.View):
                 self.page.update()
 
         time_dialog = ft.AlertDialog(
-            title=ft.Text("Time Required to Complete Recipe"),
+            title=ft.Text("Time Required to Complete Recipe", text_align=ft.TextAlign.CENTER),
             modal=True,
             content=ft.TextField(
                 border_color=ft.colors.TRANSPARENT,
@@ -243,7 +243,9 @@ class NewRecipeView(ft.View):
                 self.photo_tab.content.controls[0].image_src = image.path
                 self.update()
             else:
-                print("Photo picking was cancelled.")
+                self.page.snack_bar = ft.SnackBar(ft.Text("No Image Selected"), bgcolor=ft.colors.RED)
+                self.page.snack_bar.open = True
+                self.page.update()
 
         file_picker = ft.FilePicker(on_result=photo_picked)
         self.page.overlay.append(file_picker)

@@ -51,7 +51,7 @@ class RecipeCard(ft.UserControl):
         )
 
         self.card = ft.Card(
-            width=250,
+            width=0.7*self.page.width,
             height=300,
             content=ft.Container(
                 image_src=image_url if image_url else "./assets/recipe-placeholder.jpg",
@@ -78,14 +78,6 @@ class RecipeCard(ft.UserControl):
             width=35,
         )
 
-    def build(self):
-        return ft.Stack(
-            controls=[
-                self.card,
-                self.fav_button
-            ]
-        )
-
     def toggle_favorite(self, e):
         if self.fav_button.icon == ft.icons.FAVORITE_BORDER:
             self.fav_button.icon = ft.icons.FAVORITE
@@ -94,3 +86,11 @@ class RecipeCard(ft.UserControl):
             self.fav_button.icon = ft.icons.FAVORITE_BORDER
             self.supabase.set_favorite(recipe_id=self.data, user_id=self.supabase.current_user.id, value=False)
         self.fav_button.update()
+
+    def build(self):
+        return ft.Stack(
+            controls=[
+                self.card,
+                self.fav_button
+            ]
+        )

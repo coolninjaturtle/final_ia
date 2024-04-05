@@ -47,14 +47,7 @@ class SupaBaseWrapper:
 
         return query.data
 
-    def insert_new_recipe(
-        self,
-        title,
-        ingredients,
-        process,
-        time,
-        photo,
-    ):
+    def insert_new_recipe(self, title, ingredients, process, time, photo):
         photo = self.upload_photo(photo)
         recipe = (
             self.client.table("recipes")
@@ -70,9 +63,8 @@ class SupaBaseWrapper:
             )
             .execute()
         )
-        self.client.table("user_recipes").insert(
-            {"user_id": self.current_user.id, "recipe_id": recipe.data[0]["recipe_id"]}
-        ).execute()
+        self.client.table("user_recipes")\
+            .insert({"user_id": self.current_user.id, "recipe_id": recipe.data[0]["recipe_id"]}).execute()
 
     def set_favorite(self, recipe_id, user_id, value):
         self.client.table("user_recipes").update({"favorited": value}).filter(
@@ -88,6 +80,26 @@ class SupaBaseWrapper:
             .execute()
         )
         return query.data[0]["favorited"]
+
+    def edit_recipe(self, title, ingredients, process, recipe_id, photo=None):
+        if photo:
+            photo = self.upload_photo(photo)
+            self.client.table("recipes").update(
+                {
+                    "recipe_name": title,
+                    "recipe_ingredients": ingredients,
+                    "recipe_process": process,
+                    "recipe_picture": f"https://gueqnqhycdfkrghaygdk.supabase.co/storage/v1/object/public/recipe_photos/{photo}",
+                }
+            ).filter("recipe_id", "eq", recipe_id).execute()
+        else:
+            self.client.table("recipes").update(
+                {
+                    "recipe_name": title,
+                    "recipe_ingredients": ingredients,
+                    "recipe_process": process,
+                }
+            ).filter("recipe_id", "eq", recipe_id).execute()
 
     def upload_photo(self, file):
         with open(file, "rb") as file:

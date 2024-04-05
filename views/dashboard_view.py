@@ -15,6 +15,7 @@ class DashboardView(ft.View):
         self.appbar = ft.AppBar(
             bgcolor=ft.colors.TRANSPARENT,
             automatically_imply_leading=False,
+            toolbar_height=70,
             title=ft.Container(
                 ft.Column(
                     spacing=0,
@@ -32,14 +33,19 @@ class DashboardView(ft.View):
             ),
             actions=[
                 ft.IconButton(
+                    icon=ft.icons.SEARCH,
+                    tooltip="Search",
+                    on_click=lambda e: self.search_bar.focus(),
+                ),
+                ft.IconButton(
                     icon=ft.icons.DOWNLOAD,
                     tooltip="Load Recipe",
                     on_click=self.load_recipe,
-                )
+                ),
             ]
         )
         self.scroll = ft.ScrollMode.HIDDEN
-        self.padding = ft.padding.only(bottom=10, top=10)
+        self.padding = ft.padding.only(bottom=20, top=10)
         self.vertical_alignment = (ft.MainAxisAlignment.START,)
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.expand = True
@@ -180,12 +186,10 @@ class DashboardView(ft.View):
                 controls=[
                     ft.Icon(ft.icons.PERSON_3_ROUNDED, size=100,),
                     ft.Text(f"User: {self.supabase.current_user.email}",
-                            font_family="Polly-Bold", size=30, weight=ft.FontWeight.BOLD,
-                            text_align=ft.TextAlign.CENTER),
-                    ft.Text(f"ID: {self.user_id}", font_family="Polly-Bold", size=30, weight=ft.FontWeight.BOLD,
+                            font_family="Polly-Bold", size=20, weight=ft.FontWeight.BOLD,
                             text_align=ft.TextAlign.CENTER),
                     ft.TextButton(icon=ft.icons.LOGOUT, text="Log Out", on_click=self.logout),
-                    ft.Container(self.feedback_bar, padding=10,),
+                    ft.Container(self.feedback_bar, padding=20,),
                     ft.TextButton(icon=ft.icons.CHECK, text="Send Feedback", on_click=self.send_feedback),
                 ]
         )
@@ -198,10 +202,15 @@ class DashboardView(ft.View):
             if self.page.dialog.content.value != "":
                 self.page.dialog.open = False
                 self.page.update()
-                self.page.go(f"/recipe/{self.page.dialog.content.value}")
-                self.supabase.set_relationship(user_id=self.user_id, recipe_id=self.page.dialog.content.value)
+                try:
+                    self.page.go(f"/recipe/{self.page.dialog.content.value}")
+                    self.supabase.set_relationship(user_id=self.user_id, recipe_id=self.page.dialog.content.value)
+                except Exception as e:
+                    self.page.snack_bar = ft.SnackBar(ft.Text(str(e)), bgcolor=ft.colors.RED)
+                    self.page.snack_bar.open = True
+                    self.page.update()
             else:
-                self.page.dialog.content.error_text = "Please enter a time"
+                self.page.dialog.content.error_text = "Please Enter a Code"
                 self.page.update()
 
         self.page.dialog = ft.AlertDialog(
