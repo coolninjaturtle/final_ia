@@ -31,6 +31,16 @@ class SignupView(ft.View):
             expand=True,
         )
 
+        self.confirm_password_bar = ft.TextField(
+            height=50,
+            label="Confirm Password",
+            label_style=ft.TextStyle(color="#50C878"),
+            password=True,
+            hint_text="Confirm Your Password",
+            can_reveal_password=True,
+            border_color="#50C878",
+            expand=True,
+        )
         self.signup_content = ft.Column(
             expand=True,
             spacing=20,
@@ -47,16 +57,7 @@ class SignupView(ft.View):
                 ft.Row(
                     controls=[
                         self.password_bar,
-                        ft.TextField(
-                            height=50,
-                            label="Confirm Password",
-                            label_style=ft.TextStyle(color="#50C878"),
-                            password=True,
-                            hint_text="Confirm Your Password",
-                            can_reveal_password=True,
-                            border_color="#50C878",
-                            expand=True,
-                        ),
+                        self.confirm_password_bar,
                     ]
                 ),
                 ft.Row(
@@ -103,6 +104,11 @@ class SignupView(ft.View):
         self.controls = [self.signup_content]
 
     def __signup(self, e):
+        if self.password_bar.value != self.confirm_password_bar.value:
+            self.page.snack_bar = ft.SnackBar(ft.Text("Passwords do not match"), bgcolor=ft.colors.RED)
+            self.page.snack_bar.open = True
+            self.page.update()
+            return
         self.controls[0].disabled = True
         self.update()
         signup_response = self.supabase.sign_up(self.email_bar.value, self.password_bar.value)

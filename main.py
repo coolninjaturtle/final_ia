@@ -36,7 +36,7 @@ def main(page: ft.Page):
         elif troute.match("/dashboard/:user_id"):
             if page.views[-1].route == f"/dashboard/{troute.user_id}":
                 page.views.pop()
-            page.views.append(dash_view := DashboardView(page=page, user_id=troute.user_id, supabase=supabase))
+            page.views.append(DashboardView(page=page, user_id=troute.user_id, supabase=supabase))
         elif troute.match("/new_recipe"):
             if page.views[-1].route == "/new_recipe":
                 page.views.pop()

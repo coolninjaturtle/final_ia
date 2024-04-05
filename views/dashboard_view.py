@@ -55,6 +55,17 @@ class DashboardView(ft.View):
 
         all_recipes = self.supabase.get_all_recipes(user_id=self.user_id)
 
+        self.search_bar = ft.TextField(
+            on_change=self.search,
+            hint_text="Search Recipes",
+            border_radius=5,
+            bgcolor=ft.colors.BLACK,
+            color=ft.colors.WHITE,
+            width=self.page.width * 0.8
+        )
+
+        self.controls.append(self.search_bar)
+
         for recipe in all_recipes:
             recipe = recipe["recipes"]
 
@@ -93,6 +104,7 @@ class DashboardView(ft.View):
 
     def home_tab(self, e):
         self.controls.clear()
+        self.controls.append(self.search_bar)
         self.bottom_appbar.content.controls[0].icon_color = ft.colors.WHITE
         self.bottom_appbar.content.controls[1].icon_color = None
         self.bottom_appbar.content.controls[2].icon_color = None
@@ -118,11 +130,11 @@ class DashboardView(ft.View):
                     supabase=self.supabase,
                 )
             )
-
         self.update()
 
     def favorites_tab(self, e):
         self.controls.clear()
+        self.controls.append(self.search_bar)
         self.bottom_appbar.content.controls[0].icon_color = None
         self.bottom_appbar.content.controls[1].icon_color = ft.colors.WHITE
         self.bottom_appbar.content.controls[2].icon_color = None
@@ -148,11 +160,38 @@ class DashboardView(ft.View):
                     supabase=self.supabase,
                 )
             )
-
         self.update()
 
     def profile_tab(self, e):
-        pass
+        self.controls.clear()
+        self.bottom_appbar.content.controls[0].icon_color = None
+        self.bottom_appbar.content.controls[1].icon_color = None
+        self.bottom_appbar.content.controls[2].icon_color = ft.colors.WHITE
+
+        self.feedback_bar = ft.TextField(
+            label="Feedback",
+            multiline=True,
+            hint_text="Please enter any feedback here!",
+            border=ft.InputBorder.UNDERLINE,
+        )
+
+        content = ft.Column(
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                controls=[
+                    ft.Icon(ft.icons.PERSON_3_ROUNDED, size=100,),
+                    ft.Text(f"User: {self.supabase.current_user.email}",
+                            font_family="Polly-Bold", size=30, weight=ft.FontWeight.BOLD,
+                            text_align=ft.TextAlign.CENTER),
+                    ft.Text(f"ID: {self.user_id}", font_family="Polly-Bold", size=30, weight=ft.FontWeight.BOLD,
+                            text_align=ft.TextAlign.CENTER),
+                    ft.TextButton(icon=ft.icons.LOGOUT, text="Log Out", on_click=self.logout),
+                    ft.Container(self.feedback_bar, padding=10,),
+                    ft.TextButton(icon=ft.icons.CHECK, text="Send Feedback", on_click=self.send_feedback),
+                ]
+        )
+
+        self.controls.append(content)
+        self.update()
 
     def load_recipe(self, e):
         def load_function(e):
@@ -166,8 +205,7 @@ class DashboardView(ft.View):
                 self.page.update()
 
         self.page.dialog = ft.AlertDialog(
-            title=ft.Text("Load Recipe"),
-            modal=True,
+            title=ft.Text("Load Recipe", text_align=ft.TextAlign.CENTER),
             content=ft.TextField(
                 border_color=ft.colors.TRANSPARENT,
                 text_align=ft.TextAlign.CENTER,
@@ -179,3 +217,30 @@ class DashboardView(ft.View):
         )
 
         self.page.update()
+
+    def logout(self, e):
+        self.page.go("/")
+        self.supabase.current_user = None
+
+    def send_feedback(self, e):
+        if self.feedback_bar.value == "":
+            self.page.snack_bar = ft.SnackBar(ft.Text("Please enter feedback"), bgcolor=ft.colors.RED)
+            self.page.snack_bar.open = True
+        else:
+            self.supabase.send_feedback(user_id=self.user_id, feedback=self.feedback_bar.value)
+            self.page.snack_bar = ft.SnackBar(ft.Text("Feedback Sent"), bgcolor=ft.colors.GREEN)
+            self.page.snack_bar.open = True
+        self.page.update()
+
+    def search(self, e):
+        query = self.search_bar.value.lower()
+        if query == "":
+            for control in self.controls[1:]:
+                control.visible = True
+        else:
+            for control in self.controls[1:]:
+                if self.search_bar.value in control.title.lower():
+                    control.visible = True
+                else:
+                    control.visible = False
+        self.update()

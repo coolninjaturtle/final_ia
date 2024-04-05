@@ -149,7 +149,7 @@ class NewRecipeView(ft.View):
                 self.page.update()
                 act_process()
             else:
-                time_dialog.content.error_text = "Please enter a time"
+                time_dialog.content.error_text = "Pstop being a bbitch"
                 self.page.update()
 
         def act_process():
@@ -239,7 +239,6 @@ class NewRecipeView(ft.View):
     def pick_photo(self, e):
         def photo_picked(result):
             if result.files:
-                # Assuming only one file is picked and it's the first in the list
                 image = result.files[0]
                 self.photo_tab.content.controls[0].image_src = image.path
                 self.update()

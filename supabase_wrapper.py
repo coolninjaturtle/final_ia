@@ -1,5 +1,4 @@
 import supabase
-from typing import Optional
 import os
 
 
@@ -49,7 +48,12 @@ class SupaBaseWrapper:
         return query.data
 
     def insert_new_recipe(
-        self, title, ingredients, process, time, photo: Optional[str] = None,
+        self,
+        title,
+        ingredients,
+        process,
+        time,
+        photo,
     ):
         photo = self.upload_photo(photo)
         recipe = (
@@ -87,7 +91,9 @@ class SupaBaseWrapper:
 
     def upload_photo(self, file):
         with open(file, "rb") as file:
-            self.client.storage.from_("recipe_photos").upload(file=file, path=os.path.basename(file.name))
+            self.client.storage.from_("recipe_photos").upload(
+                file=file, path=os.path.basename(file.name)
+            )
         return os.path.basename(file.name)
 
     def get_recipe_by_id(self, recipe_id):
@@ -100,4 +106,14 @@ class SupaBaseWrapper:
         return query.data
 
     def set_relationship(self, recipe_id, user_id):
-        self.client.table("user_recipes").insert({"user_id": user_id, "recipe_id": recipe_id}).execute()
+        self.client.table("user_recipes").insert(
+            {"user_id": user_id, "recipe_id": recipe_id}
+        ).execute()
+
+    def sever_relationship(self, recipe_id):
+        self.client.table("user_recipes").delete().filter(
+            "recipe_id", "eq", recipe_id
+        ).filter("user_id", "eq", self.current_user.id).execute()
+
+    def send_feedback(self, user_id, feedback):
+        self.client.table("feedback").insert({"user": user_id, "feedback": feedback}).execute()
